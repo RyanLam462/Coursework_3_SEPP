@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class RequestSupermarketInfoSystemTest {
+public  class RequestSupermarketInfoSystemTest {
 
     @BeforeEach
     void printTestName(TestInfo testInfo) {
