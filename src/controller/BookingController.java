@@ -10,12 +10,10 @@ import model.Student;
 import view.View;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
- * Controller responsible for booking-related operations in
- * the events app.
+ * Controller responsible for booking-related operations in the events app.
  *
  * <p>
  * Handles booking performances, cancelling bookings,
@@ -23,9 +21,17 @@ import java.util.List;
  * Maintains the global collection of all bookings.
  * </p>
  */
+
 public class BookingController extends Controller {
+    /**
+     * findBookingsByEventID() was removed from BookingController
+     * as it is not used by any of the implemented use cases.
+     * The cancel performance use case retrieves bookings directly
+     * from the Performance object via getActiveBookings().
+     */
 
     private long nextBookingNumber;
+    private final List<Booking> bookings;
     private final List<Performance> performances;
     private final PaymentSystem paymentSystem;
 
@@ -40,7 +46,9 @@ public class BookingController extends Controller {
         assert performances != null : "Performances list must not be null";
         this.performances = performances;
         this.paymentSystem = new MockPaymentSystem();
+        this.bookings = new ArrayList<>();
         this.nextBookingNumber = 1;
+
     }
 
     private Performance getPerformanceByID(long performanceID) {
@@ -52,81 +60,31 @@ public class BookingController extends Controller {
         return null;
     }
 
-    /**
-     * Checks whether a booking is possible for the given
-     * performance and number of tickets.
-     *
-     * <p>
-     * Validates that the event is ticketed and that
-     * enough tickets remain.
-     * </p>
-     *
-     * @param performance the performance to check
-     * @param numTickets  the number of tickets
-     *                    requested
-     * @return {@code true} if booking is possible
-     */
     private boolean checkIfBookingPossible(Performance performance, int numTickets) {
-
-        // Check if the event is ticketed
         boolean isTicketed = performance.checkIfEventIsTicketed();
         if (!isTicketed) {
-            view.displayError(
-                    "The requested performance's event is " + "not ticketed. There is no need " + "to book it.");
+            view.displayError("The requested performance's event is not ticketed. There is no need to book it.");
             return false;
         }
 
-        // Check ticket availability
         boolean enoughTicketsLeft = performance.checkTicketsLeft(numTickets);
         if (!enoughTicketsLeft) {
-            view.displayError("Requested performance has no " + "tickets left.");
+            view.displayError("Requested performance has no tickets left.");
             return false;
         }
 
         return true;
     }
 
-    /**
-     * Adds a booking to the internal collection.
-     *
-     * @param b the booking to add; must not be null
-     */
     private void addBooking(Booking b) {
         assert b != null : "Booking must not be null";
-        // Booking is stored on the performance and
-        // student objects directly
+        bookings.add(b);
     }
 
-    /**
-     * Finds all bookings for a given event ID by
-     * searching across all performances of that event.
-     *
-     * @param eventID the event ID to search for
-     * @return a collection of matching bookings
-     */
-    private Collection<Booking> findBookingsByEventID(long eventID) {
-        List<Booking> result = new ArrayList<>();
-        for (Performance p : performances) {
-            if (p.getEvent().getEventID() == eventID) {
-                result.addAll(p.getBookings());
-            }
-        }
-        return result;
-    }
-
-    /**
-     * Finds a booking by its unique booking number,
-     * searching across all performances.
-     *
-     * @param bookingNumber the booking number to find
-     * @return the matching {@link Booking}, or null
-     */
     private Booking getBookingByNumber(long bookingNumber) {
-        for (Performance p : performances) {
-            for (Booking b : p.getBookings()) {
-                if (b.getBookingNumber() == bookingNumber) {
-                    return b;
-                }
+        for (Booking b : bookings) {
+            if (b.getBookingNumber() == bookingNumber) {
+                return b;
             }
         }
         return null;
@@ -136,21 +94,15 @@ public class BookingController extends Controller {
      * Returns the payment system used by this controller.
      *
      * <p>
-     * Exposed so that the
-     * {@link EventPerformanceController} can use it for
-     * refunds during performance cancellation.
+     * Exposed so that the {@link EventPerformanceController} can use it for refunds
+     * during performance cancellation.
      * </p>
      *
      * @return the {@link PaymentSystem}
      */
-
     public PaymentSystem getPaymentSystem() {
         return paymentSystem;
     }
-
-    // ==========================================================
-    // Use case: Book Performance
-    // ==========================================================
 
     /**
      * Handles the book performance use case.
@@ -170,7 +122,6 @@ public class BookingController extends Controller {
      * payment succeeds.
      * </p>
      */
-
     public void bookPerformance() {
         if (!checkCurrentUserIsStudent()) {
             view.displayError("Only students can book performances.");
@@ -182,8 +133,6 @@ public class BookingController extends Controller {
         boolean isTicketed = true;
         int numTickets = 0;
 
-        // Exact match to the Sequence Diagram loop condition:
-        // loop [while performance == null or (possible==false and isTicketed==true)]
         while (performance == null || (!possible && isTicketed)) {
             String idInput = view.getInput("Enter performance ID to book: ");
             String ticketsInput = view.getInput("Enter number of tickets: ");
@@ -207,28 +156,23 @@ public class BookingController extends Controller {
                 }
 
             } catch (NumberFormatException e) {
-                view.displayError(
-                        "Invalid input format.");
+                view.displayError("Invalid input format.");
                 performance = null;
             }
         }
 
-        // Guard: if loop exited because the event was
-        // non-ticketed, do not proceed with booking
+        // Guard: if loop exited because the event was non-ticketed, do not proceed with
+        // booking
         if (!possible) {
             return;
         }
 
-        // --- Start of Post-Loop Sequence Diagram Logic ---
         Student student = (Student) getCurrentUser();
         Event event = performance.getEvent();
         double ticketPrice = performance.getFinalTicketPrice();
         double transactionAmount = ticketPrice * numTickets;
-
         long bookingNum = nextBookingNumber++;
-        Booking booking = new Booking(
-                bookingNum, student, performance,
-                numTickets, transactionAmount);
+        Booking booking = new Booking(bookingNum, student, performance, numTickets, transactionAmount);
 
         addBooking(booking);
         performance.addBooking(booking);
@@ -239,9 +183,7 @@ public class BookingController extends Controller {
         int studentPhone = student.getPhoneNumber();
         String epEmail = event.getOrganiserEmail();
 
-        boolean paymentSuccessful = paymentSystem.processPayment(
-                numTickets, eventTitle,
-                studentEmail, studentPhone,
+        boolean paymentSuccessful = paymentSystem.processPayment(numTickets, eventTitle, studentEmail, studentPhone,
                 epEmail, transactionAmount);
 
         if (paymentSuccessful) {
@@ -256,18 +198,13 @@ public class BookingController extends Controller {
         }
     }
 
-    // ==========================================================
-    // Use case: Cancel Booking
-    // ==========================================================
-
     /**
      * Handles the cancel booking use case.
      *
      * <p>
      * Only a {@link Student} may cancel their own booking. The student is prompted
-     * for the booking number.
-     * If the associated performance has not yet happened, a refund is processed and
-     * the booking is marked as cancelled.
+     * for the booking number. If the associated performance has not yet happened, a
+     * refund is processed and the booking is marked as cancelled.
      * </p>
      *
      * <p>
@@ -277,7 +214,6 @@ public class BookingController extends Controller {
      * </p>
      */
     public void cancelBooking() {
-        // Guard: must be a student
         if (!checkCurrentUserIsStudent()) {
             view.displayError("Only students can cancel bookings.");
             return;
@@ -296,7 +232,7 @@ public class BookingController extends Controller {
 
         Booking booking = getBookingByNumber(bookingNumber);
         if (booking == null) {
-            view.displayError("Booking with given number " + "does not exist.");
+            view.displayError("Booking with given number does not exist.");
             return;
         }
 
@@ -307,13 +243,13 @@ public class BookingController extends Controller {
         }
 
         if (booking.getStatus() != BookingStatus.ACTIVE) {
-            view.displayError("This booking is not active and " + "cannot be cancelled.");
+            view.displayError("This booking is not active and cannot be cancelled.");
             return;
         }
 
         Performance performance = booking.getPerformance();
         if (!performance.checkHasNotHappenedYet()) {
-            view.displayError("The performance has already happened. " + "The booking cannot be cancelled.");
+            view.displayError("The performance has already happened. The booking cannot be cancelled.");
             return;
         }
 
@@ -325,20 +261,17 @@ public class BookingController extends Controller {
         String epEmail = event.getOrganiserEmail();
         int numTickets = booking.getNumTickets();
         double transactionAmount = booking.getTransactionAmount();
-
         boolean refundSuccess = paymentSystem.processRefund(numTickets, eventTitle, studentEmail, studentPhone, epEmail,
                 transactionAmount, "");
 
         if (!refundSuccess) {
-            view.displayError("There was an issue with the refund. " + "The booking cannot be cancelled.");
+            view.displayError("There was an issue with the refund. The booking cannot be cancelled.");
             return;
         }
 
         booking.cancelByStudent();
-
         // Restore the ticket count
         performance.setNumTicketsSold(performance.getNumTicketsSold() - numTickets);
-
-        view.displaySuccess("Booking cancelled successfully. " + "Refund has been processed.");
+        view.displaySuccess("Booking cancelled successfully. Refund has been processed.");
     }
 }
