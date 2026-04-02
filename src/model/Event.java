@@ -9,20 +9,17 @@ import java.util.List;
 /**
  * Represents an event in the university events app.
  *
- * <p>An event is created by an {@link EntertainmentProvider}
+ * <p>
+ * An event is created by an {@link EntertainmentProvider}
  * and may have one or more {@link Performance} instances.
  * Events can be ticketed (requiring booking and payment)
- * or non-ticketed (free entry).</p>
+ * or non-ticketed (free entry).
+ * </p>
  */
 public class Event {
 
-    /** The unique identifier for this event. */
     private final long eventID;
-
-    /** The title of the event. */
     private String title;
-
-    /** The type/category of the event. */
     private EventType type;
 
     /**
@@ -32,36 +29,23 @@ public class Event {
      */
     private boolean isTicketed;
 
-    /**
-     * The entertainment provider who created and organises
-     * this event.
-     */
     private final EntertainmentProvider organiser;
-
-    /** The performances scheduled for this event. */
     private final List<Performance> performances;
 
     /**
      * Constructs a new {@code Event}.
      *
      * @param eventID    the unique event identifier
-     * @param title      the event title; must not be null
-     *                   or blank
+     * @param title      the event title; must not be null or blank
      * @param type       the type of event; must not be null
      * @param isTicketed whether the event requires tickets
-     * @param organiser  the EP organising this event;
-     *                   must not be null
+     * @param organiser  the EP organising this event; must not be null
      */
-    public Event(long eventID, String title, EventType type,
-                 boolean isTicketed,
-                 EntertainmentProvider organiser) {
-        assert eventID >= 0
-            : "Event ID must be non-negative";
-        assert title != null && !title.isBlank()
-            : "Title must not be null or blank";
+    public Event(long eventID, String title, EventType type, boolean isTicketed, EntertainmentProvider organiser) {
+        assert eventID >= 0 : "Event ID must be non-negative";
+        assert title != null && !title.isBlank() : "Title must not be null or blank";
         assert type != null : "EventType must not be null";
-        assert organiser != null
-            : "Organiser must not be null";
+        assert organiser != null : "Organiser must not be null";
         this.eventID = eventID;
         this.title = title;
         this.type = type;
@@ -70,78 +54,36 @@ public class Event {
         this.performances = new ArrayList<>();
     }
 
-    /**
-     * Returns the event's unique identifier.
-     *
-     * @return the event ID
-     */
     public long getEventID() {
         return eventID;
     }
 
-    /**
-     * Returns the event title.
-     *
-     * @return the title of this event
-     */
     public String getEventTitle() {
         return title;
     }
 
-    /**
-     * Sets the event title.
-     *
-     * @param title the new title; must not be null or blank
-     */
     public void setEventTitle(String title) {
-        assert title != null && !title.isBlank()
-            : "Title must not be null or blank";
+        assert title != null && !title.isBlank() : "Title must not be null or blank";
         this.title = title;
     }
 
-    /**
-     * Returns the event type.
-     *
-     * @return the {@link EventType} of this event
-     */
     public EventType getType() {
         return type;
     }
 
-    /**
-     * Sets the event type.
-     *
-     * @param type the new type; must not be null
-     */
     public void setType(EventType type) {
         assert type != null : "EventType must not be null";
         this.type = type;
     }
 
-    /**
-     * Returns whether the event is ticketed.
-     *
-     * @return {@code true} if the event requires tickets
-     */
     public boolean getIsTicketed() {
         return isTicketed;
     }
 
-    /**
-     * Sets whether the event is ticketed.
-     *
-     * @param isTicketed whether the event requires tickets
-     */
     public void setIsTicketed(boolean isTicketed) {
         this.isTicketed = isTicketed;
     }
 
-    /**
-     * Returns the entertainment provider organising this
-     * event.
-     *
-     * @return the organiser {@link EntertainmentProvider}
-     */
     public EntertainmentProvider getOrganiser() {
         return organiser;
     }
@@ -149,10 +91,6 @@ public class Event {
     /**
      * Creates a new {@link Performance}, adds it to this
      * event, and returns it.
-     *
-     * <p>This is the factory method shown in the class
-     * diagram. The caller (typically the controller)
-     * supplies the performance ID.</p>
      *
      * @param performanceID      the unique performance ID
      * @param startDateTime      start date/time
@@ -180,24 +118,15 @@ public class Event {
             int numTickets,
             double ticketPrice) {
         Performance p = new Performance(
-            performanceID, this, startDateTime,
-            endDateTime, performerNames, venueAddress,
-            venueCapacity, venueIsOutdoors,
-            venueAllowsSmoking, numTickets, ticketPrice);
+                performanceID, this, startDateTime,
+                endDateTime, performerNames, venueAddress,
+                venueCapacity, venueIsOutdoors,
+                venueAllowsSmoking, numTickets, ticketPrice);
         performances.add(p);
         return p;
     }
 
-    /**
-     * Finds a performance by its unique ID within this
-     * event's performances.
-     *
-     * @param performanceID the ID to search for
-     * @return the matching {@link Performance}, or
-     *         {@code null} if not found
-     */
-    public Performance getPerformanceByID(
-            long performanceID) {
+    public Performance getPerformanceByID(long performanceID) {
         for (Performance p : performances) {
             if (p.getID() == performanceID) {
                 return p;
@@ -211,41 +140,23 @@ public class Event {
      * on the given date.
      *
      * @param searchDateTime the date/time to match
-     *        (performances starting on the same date)
+     *                       (performances starting on the same date)
      * @return a collection of performance info strings
      */
-    public Collection<String> getInfoOfPerformancesOnDate(
-            LocalDateTime searchDateTime) {
+    public Collection<String> getInfoOfPerformancesOnDate(LocalDateTime searchDateTime) {
         List<String> infos = new ArrayList<>();
         for (Performance p : performances) {
-            if (p.getStartDateTime().toLocalDate()
-                    .equals(searchDateTime.toLocalDate())) {
+            if (p.getStartDateTime().toLocalDate().equals(searchDateTime.toLocalDate())) {
                 infos.add(p.toString());
             }
         }
         return infos;
     }
 
-    /**
-     * Returns the organiser's name.
-     *
-     * <p>Convenience method that delegates to the
-     * organiser.</p>
-     *
-     * @return the organiser's organisation name
-     */
     public String getOrganiserName() {
         return organiser.getOrgName();
     }
 
-    /**
-     * Returns the organiser's email address.
-     *
-     * <p>Convenience method that delegates to the
-     * organiser.</p>
-     *
-     * @return the organiser's email
-     */
     public String getOrganiserEmail() {
         return organiser.getEmail();
     }
@@ -259,15 +170,11 @@ public class Event {
      * @return {@code true} if an overlapping performance
      *         exists
      */
-    public boolean hasPerformanceAtSameTimes(
-            LocalDateTime startDateTime,
-            LocalDateTime endDateTime) {
+    public boolean hasPerformanceAtSameTimes(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         for (Performance p : performances) {
             // Overlap: existing.start < new.end
-            //       && existing.end > new.start
-            if (p.getStartDateTime().isBefore(endDateTime)
-                    && p.getEndDateTime()
-                        .isAfter(startDateTime)) {
+            // && existing.end > new.start
+            if (p.getStartDateTime().isBefore(endDateTime) && p.getEndDateTime().isAfter(startDateTime)) {
                 return true;
             }
         }
@@ -284,15 +191,8 @@ public class Event {
         return Collections.unmodifiableList(performances);
     }
 
-    /**
-     * Adds a performance to this event.
-     *
-     * @param performance the performance to add;
-     *                    must not be null
-     */
     public void addPerformance(Performance performance) {
-        assert performance != null
-            : "Performance must not be null";
+        assert performance != null : "Performance must not be null";
         performances.add(performance);
     }
 
@@ -304,8 +204,8 @@ public class Event {
     @Override
     public String toString() {
         return "Event{id=" + eventID
-            + ", title='" + title
-            + "', type=" + type
-            + ", ticketed=" + isTicketed + '}';
+                + ", title='" + title
+                + "', type=" + type
+                + ", ticketed=" + isTicketed + '}';
     }
 }

@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import external.PaymentSystem;
+
 /**
  * Controller responsible for event and performance-related
  * operations in the events app.
@@ -30,116 +32,56 @@ import java.util.List;
  */
 public class EventPerformanceController extends Controller {
 
-    /** Counter for generating unique event IDs. */
-    private long nextEventID;
-
-    /** Counter for generating unique performance IDs. */
-    private long nextPerformanceID;
-
     /**
-     * The shared collection of all performances across
-     * all events. This is shared with the
-     * {@link BookingController} for booking lookups.
+     * getEventByID() and getEventByTitle() were removed from
+     * EventPerformanceController as no implemented use case requires looking up
+     * events by ID or title on the controller. Events are accessed through their
+     * Performance objects (via getEvent()) or through the
+     * EntertainmentProvider's event list. If a future use case required direct
+     * event lookup (e.g. an admin searching events), these methods would be
+     * re-added.
      */
-    private final List<Performance> performances;
 
-    /** All events in the system. */
+    private long nextEventID;
+    private long nextPerformanceID;
+    private final List<Performance> performances;
     private final List<Event> events;
+    private final PaymentSystem paymentSystem;
 
     /**
      * Date-time format used for parsing user input.
-     * Example: {@code 2026-04-15T19:30}.
+     * Example: 2026-04-15T19:30
      */
     private static final DateTimeFormatter DT_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * Constructs a new {@code EventPerformanceController}.
      *
-     * @param view         the view for user interaction
-     * @param performances the shared performance list;
-     *                     must not be null
+     * @param view          the view for user interaction
+     * @param performances  the shared performance list
+     * @param paymentSystem the shared payment system
      */
-    public EventPerformanceController(
-            View view,
-            List<Performance> performances) {
+
+    public EventPerformanceController(View view, List<Performance> performances, PaymentSystem paymentSystem) {
         super(view);
-        assert performances != null
-                : "Performances list must not be null";
         this.performances = performances;
+        this.paymentSystem = paymentSystem;
         this.events = new ArrayList<>();
         this.nextEventID = 1;
         this.nextPerformanceID = 1;
     }
 
-    // ==========================================================
-    // Internal helpers
-    // ==========================================================
-
-    /**
-     * Adds an event to the internal collection.
-     *
-     * @param e the event to add; must not be null
-     */
     private void addEvent(Event e) {
         assert e != null : "Event must not be null";
         events.add(e);
     }
 
-    /**
-     * Adds a performance to the shared collection.
-     *
-     * @param p the performance to add; must not be null
-     */
     private void addPerformance(Performance p) {
-        assert p != null
-                : "Performance must not be null";
+        assert p != null : "Performance must not be null";
         performances.add(p);
     }
 
-    /**
-     * Finds an event by its unique ID.
-     *
-     * @param eventID the ID to search for
-     * @return the matching {@link Event}, or {@code null}
-     */
-    public Event getEventByID(long eventID) {
-        for (Event e : events) {
-            if (e.getEventID() == eventID) {
-                return e;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Finds an event by its title (case-insensitive).
-     *
-     * @param title the title to search for
-     * @return the matching {@link Event}, or {@code null}
-     */
-    public Event getEventByTitle(String title) {
-        if (title == null) {
-            return null;
-        }
-        for (Event e : events) {
-            if (e.getEventTitle()
-                    .equalsIgnoreCase(title)) {
-                return e;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Finds a performance by its unique ID from the
-     * shared collection.
-     *
-     * @param performanceID the ID to search for
-     * @return the matching {@link Performance}, or
-     *         {@code null}
-     */
-    public Performance getPerformanceByID(
-            long performanceID) {
+    private Performance getPerformanceByID(long performanceID) {
         for (Performance p : performances) {
             if (p.getID() == performanceID) {
                 return p;
@@ -147,10 +89,6 @@ public class EventPerformanceController extends Controller {
         }
         return null;
     }
-
-    // ==========================================================
-    // Use case: Create Event
-    // ==========================================================
 
     /**
      * Handles the create event use case.
@@ -171,42 +109,30 @@ public class EventPerformanceController extends Controller {
      * </p>
      */
     public Event createEvent() {
-        // Guard: must be an EP
         if (!checkCurrentUserIsEntertainmentProvider()) {
-            view.displayError(
-                    "Only entertainment providers can "
-                            + "create events.");
+            view.displayError("Only entertainment providers can create events.");
             return null;
         }
 
         EntertainmentProvider ep = (EntertainmentProvider) currentUser;
 
-        // Collect event details
-        String title = view.getInput(
-                "Enter event title: ");
+        String title = view.getInput("Enter event title: ");
         if (title == null || title.isBlank()) {
-            view.displayError(
-                    "Event title must not be empty.");
+            view.displayError("Event title must not be empty.");
             return null;
         }
 
         // Check duplicate title for this EP
         for (Event existing : ep.getEvents()) {
-            if (existing.getEventTitle()
-                    .equalsIgnoreCase(title)) {
-                view.displayError(
-                        "You already have an event with "
-                                + "this title.");
+            if (existing.getEventTitle().equalsIgnoreCase(title)) {
+                view.displayError("You already have an event with this title.");
                 return null;
             }
         }
 
         // Event type
-        view.displayInfo(
-                "Event types: 1=Music, 2=Theatre, "
-                        + "3=Dance, 4=Movie, 5=Sports");
-        String typeInput = view.getInput(
-                "Enter event type (1-5): ");
+        view.displayInfo("Event types: 1 = Music, 2 = Theatre, 3 = Dance, 4 = Movie, 5 = Sports");
+        String typeInput = view.getInput("Enter event type (1-5): ");
         EventType type;
         try {
             int typeChoice = Integer.parseInt(typeInput);
@@ -219,34 +145,28 @@ public class EventPerformanceController extends Controller {
                 default -> null;
             };
             if (type == null) {
-                view.displayError(
-                        "Invalid event type choice.");
+                view.displayError("Invalid event type choice.");
                 return null;
             }
         } catch (NumberFormatException e) {
-            view.displayError(
-                    "Invalid input for event type.");
+            view.displayError("Invalid input for event type.");
             return null;
         }
 
-        // Ticketed?
-        String ticketedInput = view.getInput(
-                "Is the event ticketed? (yes/no): ");
+        String ticketedInput = view.getInput("Is the event ticketed? (yes/no): ");
         boolean isTicketed;
         if ("yes".equalsIgnoreCase(ticketedInput)) {
             isTicketed = true;
         } else if ("no".equalsIgnoreCase(ticketedInput)) {
             isTicketed = false;
         } else {
-            view.displayError(
-                    "Invalid input. Enter 'yes' or 'no'.");
+            view.displayError("Invalid input. Enter 'yes' or 'no'.");
             return null;
         }
 
         // Create the event object
         long eventID = nextEventID++;
-        Event event = new Event(
-                eventID, title, type, isTicketed, ep);
+        Event event = new Event(eventID, title, type, isTicketed, ep);
         addEvent(event);
         ep.addEvent(event);
 
@@ -258,14 +178,11 @@ public class EventPerformanceController extends Controller {
                 addPerformance(perf);
             }
 
-            String more = view.getInput(
-                    "Add another performance? (yes/no): ");
+            String more = view.getInput("Add another performance? (yes/no): ");
             addingPerformances = "yes".equalsIgnoreCase(more);
         }
 
-        view.displaySuccess(
-                "Event '" + title + "' created successfully "
-                        + "with ID " + eventID + ".");
+        view.displaySuccess("Event '" + title + "' created successfully with ID " + eventID + ".");
         return event;
     }
 
@@ -275,78 +192,54 @@ public class EventPerformanceController extends Controller {
      *
      * @param event      the parent event
      * @param isTicketed whether the event is ticketed
-     * @return the created {@link Performance}, or
-     *         {@code null} if input was invalid
+     * @return the created {@link Performance}, or null if input was invalid
      */
-    private Performance promptForPerformance(
-            Event event, boolean isTicketed) {
+    private Performance promptForPerformance(Event event, boolean isTicketed) {
 
-        // Venue address
-        String venueAddress = view.getInput(
-                "Enter venue address: ");
-        if (venueAddress == null
-                || venueAddress.isBlank()) {
-            view.displayError(
-                    "Venue address must not be empty.");
+        String venueAddress = view.getInput("Enter venue address: ");
+        if (venueAddress == null || venueAddress.isBlank()) {
+            view.displayError("Venue address must not be empty.");
             return null;
         }
 
-        // Venue capacity
-        String capacityInput = view.getInput(
-                "Enter venue capacity: ");
+        String capacityInput = view.getInput("Enter venue capacity: ");
         int venueCapacity;
         try {
             venueCapacity = Integer.parseInt(capacityInput);
             if (venueCapacity < 0) {
-                view.displayError(
-                        "Venue capacity cannot be "
-                                + "negative.");
+                view.displayError("Venue capacity cannot be negative.");
                 return null;
             }
         } catch (NumberFormatException e) {
-            view.displayError(
-                    "Invalid input for venue capacity.");
+            view.displayError("Invalid input for venue capacity.");
             return null;
         }
 
-        // Venue outdoors?
-        String outdoorsInput = view.getInput(
-                "Is the venue outdoors? (yes/no): ");
+        String outdoorsInput = view.getInput("Is the venue outdoors? (yes/no): ");
         boolean venueIsOutdoors;
         if ("yes".equalsIgnoreCase(outdoorsInput)) {
             venueIsOutdoors = true;
-        } else if ("no".equalsIgnoreCase(
-                outdoorsInput)) {
+        } else if ("no".equalsIgnoreCase(outdoorsInput)) {
             venueIsOutdoors = false;
         } else {
-            view.displayError(
-                    "Invalid input. Enter 'yes' or 'no'.");
+            view.displayError("Invalid input. Enter 'yes' or 'no'.");
             return null;
         }
 
-        // Venue allows smoking?
-        String smokingInput = view.getInput(
-                "Does the venue allow smoking? "
-                        + "(yes/no): ");
+        String smokingInput = view.getInput("Does the venue allow smoking? (yes/no): ");
         boolean venueAllowsSmoking;
         if ("yes".equalsIgnoreCase(smokingInput)) {
             venueAllowsSmoking = true;
-        } else if ("no".equalsIgnoreCase(
-                smokingInput)) {
+        } else if ("no".equalsIgnoreCase(smokingInput)) {
             venueAllowsSmoking = false;
         } else {
-            view.displayError(
-                    "Invalid input. Enter 'yes' or 'no'.");
+            view.displayError("Invalid input. Enter 'yes' or 'no'.");
             return null;
         }
 
-        // Performer names
-        String performersInput = view.getInput(
-                "Enter performer names "
-                        + "(comma-separated): ");
+        String performersInput = view.getInput("Enter performer names (comma-separated): ");
         Collection<String> performerNames = new ArrayList<>();
-        if (performersInput != null
-                && !performersInput.isBlank()) {
+        if (performersInput != null && !performersInput.isBlank()) {
             String[] names = performersInput.split(",");
             for (String name : names) {
                 String trimmed = name.trim();
@@ -356,58 +249,35 @@ public class EventPerformanceController extends Controller {
             }
         }
 
-        // Start date/time
-        String startInput = view.getInput(
-                "Enter start date/time "
-                        + "(yyyy-MM-ddTHH:mm): ");
+        String startInput = view.getInput("Enter start date/time (yyyy-MM-ddTHH:mm): ");
         LocalDateTime startDT;
         try {
-            startDT = LocalDateTime.parse(
-                    startInput, DT_FORMAT);
+            startDT = LocalDateTime.parse(startInput, DT_FORMAT);
         } catch (DateTimeParseException e) {
-            view.displayError(
-                    "Invalid date/time format. "
-                            + "Use yyyy-MM-ddTHH:mm.");
+            view.displayError("Invalid date/time format. Use yyyy-MM-ddTHH:mm.");
             return null;
         }
 
-        // End date/time
-        String endInput = view.getInput(
-                "Enter end date/time "
-                        + "(yyyy-MM-ddTHH:mm): ");
+        String endInput = view.getInput("Enter end date/time (yyyy-MM-ddTHH:mm): ");
         LocalDateTime endDT;
         try {
-            endDT = LocalDateTime.parse(
-                    endInput, DT_FORMAT);
+            endDT = LocalDateTime.parse(endInput, DT_FORMAT);
         } catch (DateTimeParseException e) {
-            view.displayError(
-                    "Invalid date/time format. "
-                            + "Use yyyy-MM-ddTHH:mm.");
+            view.displayError("Invalid date/time format. Use yyyy-MM-ddTHH:mm.");
             return null;
         }
-
-        // Validate: end must be after start
         if (!endDT.isAfter(startDT)) {
-            view.displayError(
-                    "End date/time must be after start.");
+            view.displayError("End date/time must be after start.");
             return null;
         }
 
-        // ADD THIS: Validate start is in the future
         if (startDT.isBefore(LocalDateTime.now())) {
-            view.displayError(
-                    "Start date/time must be in the "
-                            + "future.");
+            view.displayError("Start date/time must be in the future.");
             return null;
         }
 
-        // Check for time overlap with existing
-        // performances in this event
-        if (event.hasPerformanceAtSameTimes(
-                startDT, endDT)) {
-            view.displayError(
-                    "This event already has a performance "
-                            + "at overlapping times.");
+        if (event.hasPerformanceAtSameTimes(startDT, endDT)) {
+            view.displayError("This event already has a performance at overlapping times.");
             return null;
         }
 
@@ -415,59 +285,38 @@ public class EventPerformanceController extends Controller {
         int numTickets = 0;
 
         if (isTicketed) {
-            // Ticket price
-            String priceInput = view.getInput(
-                    "Enter ticket price (GBP): ");
+            String priceInput = view.getInput("Enter ticket price (GBP): ");
             try {
                 ticketPrice = Double.parseDouble(priceInput);
                 if (ticketPrice < 0) {
-                    view.displayError(
-                            "Ticket price cannot be "
-                                    + "negative.");
+                    view.displayError("Ticket price cannot be negative.");
                     return null;
                 }
             } catch (NumberFormatException e) {
-                view.displayError(
-                        "Invalid input for ticket price.");
+                view.displayError("Invalid input for ticket price.");
                 return null;
             }
 
-            // Number of tickets
-            String ticketsInput = view.getInput(
-                    "Enter total number of tickets: ");
+            String ticketsInput = view.getInput("Enter total number of tickets: ");
             try {
                 numTickets = Integer.parseInt(ticketsInput);
                 if (numTickets <= 0) {
-                    view.displayError(
-                            "Number of tickets must be "
-                                    + "positive.");
+                    view.displayError("Number of tickets must be positive.");
                     return null;
                 }
             } catch (NumberFormatException e) {
-                view.displayError(
-                        "Invalid input for ticket count.");
+                view.displayError("Invalid input for ticket count.");
                 return null;
             }
         }
 
-        // Use Event.createPerformance() as per diagram
         long perfID = nextPerformanceID++;
-        Performance performance = event.createPerformance(
-                perfID, startDT, endDT,
-                performerNames, venueAddress,
-                venueCapacity, venueIsOutdoors,
-                venueAllowsSmoking, numTickets,
-                ticketPrice);
+        Performance performance = event.createPerformance(perfID, startDT, endDT, performerNames, venueAddress,
+                venueCapacity, venueIsOutdoors, venueAllowsSmoking, numTickets, ticketPrice);
 
-        view.displayInfo(
-                "Performance " + perfID + " added at "
-                        + venueAddress + ".");
+        view.displayInfo("Performance " + perfID + " added at " + venueAddress + ".");
         return performance;
     }
-
-    // ==========================================================
-    // Use case: Search for Performances
-    // ==========================================================
 
     /**
      * Handles the search for performances use case.
@@ -479,16 +328,13 @@ public class EventPerformanceController extends Controller {
      */
     public void searchForPerformances() {
         if (performances.isEmpty()) {
-            view.displayInfo(
-                    "No performances found in the system.");
+            view.displayInfo("No performances found in the system.");
             return;
         }
 
-        view.displayInfo(
-                "=== Available Performances ===");
+        view.displayInfo("=== Available Performances ===");
         int count = 0;
         for (Performance p : performances) {
-            // Only show active performances
             if (p.getStatus() == PerformanceStatus.ACTIVE) {
                 view.displayInfo(p.toString());
                 count++;
@@ -496,17 +342,11 @@ public class EventPerformanceController extends Controller {
         }
 
         if (count == 0) {
-            view.displayInfo(
-                    "No active performances found.");
+            view.displayInfo("No active performances found.");
         } else {
-            view.displayInfo(
-                    "Total active performances: " + count);
+            view.displayInfo("Total active performances: " + count);
         }
     }
-
-    // ==========================================================
-    // Use case: View Performance
-    // ==========================================================
 
     /**
      * Handles the view performance use case.
@@ -518,65 +358,40 @@ public class EventPerformanceController extends Controller {
      * </p>
      */
     public void viewPerformance() {
-        String idInput = view.getInput(
-                "Enter performance ID to view: ");
+        String idInput = view.getInput("Enter performance ID to view: ");
         long performanceID;
         try {
             performanceID = Long.parseLong(idInput);
         } catch (NumberFormatException e) {
-            view.displayError(
-                    "Invalid performance ID.");
+            view.displayError("Invalid performance ID.");
             return;
         }
 
         Performance p = getPerformanceByID(performanceID);
         if (p == null) {
-            view.displayError(
-                    "Performance with given number "
-                            + "does not exist.");
+            view.displayError("Performance with given number does not exist.");
             return;
         }
 
         // Display full performance details
         Event event = p.getEvent();
-        view.displayInfo(
-                "=== Performance Details ===");
-        view.displayInfo(
-                "Performance ID: " + p.getID());
-        view.displayInfo(
-                "Event: " + event.getEventTitle()
-                        + " (" + event.getType() + ")");
-        view.displayInfo(
-                "Organiser: "
-                        + event.getOrganiser().getOrgName());
-        view.displayInfo(
-                "Venue: " + p.getVenueAddress());
-        view.displayInfo(
-                "Start: " + p.getStartDateTime());
-        view.displayInfo(
-                "End: " + p.getEndDateTime());
-        view.displayInfo(
-                "Ticketed: " + event.getIsTicketed());
+        view.displayInfo("=== Performance Details ===");
+        view.displayInfo("Performance ID: " + p.getID());
+        view.displayInfo("Event: " + event.getEventTitle() + " (" + event.getType() + ")");
+        view.displayInfo("Organiser: " + event.getOrganiser().getOrgName());
+        view.displayInfo("Venue: " + p.getVenueAddress());
+        view.displayInfo("Start: " + p.getStartDateTime());
+        view.displayInfo("End: " + p.getEndDateTime());
+        view.displayInfo("Ticketed: " + event.getIsTicketed());
 
         if (event.getIsTicketed()) {
-            view.displayInfo(
-                    "Ticket Price: £"
-                            + String.format(
-                                    "%.2f", p.getTicketPrice()));
-            view.displayInfo(
-                    "Tickets Available: "
-                            + (p.getNumTicketsTotal()
-                                    - p.getNumTicketsSold())
-                            + "/" + p.getNumTicketsTotal());
+            view.displayInfo("Ticket Price: £" + String.format("%.2f", p.getTicketPrice()));
+            view.displayInfo("Tickets Available: " + (p.getNumTicketsTotal() - p.getNumTicketsSold()) + "/"
+                    + p.getNumTicketsTotal());
         }
 
-        view.displayInfo(
-                "Status: " + p.getStatus());
+        view.displayInfo("Status: " + p.getStatus());
     }
-
-    // ==========================================================
-    // Use case: Cancel Performance
-    // ==========================================================
 
     /**
      * Handles the cancel performance use case.
@@ -596,68 +411,47 @@ public class EventPerformanceController extends Controller {
      * has not already happened.
      * </p>
      *
-     * @param bookingController the booking controller
-     *                          used to process refunds; must not be null
      */
-    public void cancelPerformance(
-            BookingController bookingController) {
+    public void cancelPerformance() {
         // Guard: must be an EP
         if (!checkCurrentUserIsEntertainmentProvider()) {
-            view.displayError(
-                    "Only entertainment providers can "
-                            + "cancel performances.");
+            view.displayError("Only entertainment providers can cancel performances.");
             return;
         }
 
         EntertainmentProvider ep = (EntertainmentProvider) currentUser;
+        Performance performance = null;
 
-        // Prompt for performance ID in a loop
-        String idInput = view.getInput(
-                "Enter ID of performance to cancel: ");
-        long performanceID;
-        try {
-            performanceID = Long.parseLong(idInput);
-        } catch (NumberFormatException e) {
-            view.displayError(
-                    "Invalid performance ID.");
-            return;
-        }
-
-        Performance performance = getPerformanceByID(performanceID);
-        if (performance == null) {
-            view.displayError(
-                    "Performance with given number "
-                            + "does not exist.");
-            return;
+        while (performance == null) {
+            String idInput = view.getInput("Enter ID of performance to cancel: ");
+            try {
+                long performanceID = Long.parseLong(idInput);
+                performance = getPerformanceByID(performanceID);
+                if (performance == null) {
+                    view.displayError("Performance with given number does not exist.");
+                }
+            } catch (NumberFormatException e) {
+                view.displayError("Invalid performance ID.");
+            }
         }
 
         // Check EP owns this performance
-        if (!performance.checkCreatedByEP(
-                ep.getEmail())) {
-            view.displayError(
-                    "The performance with given number "
-                            + "does not belong to you.");
+        if (!performance.checkCreatedByEP(ep.getEmail())) {
+            view.displayError("The performance with given number does not belong to you.");
             return;
         }
 
-        // Check performance hasn't already happened
         if (!performance.checkHasNotHappenedYet()) {
-            view.displayError(
-                    "Performance can't be cancelled as "
-                            + "it has already happened.");
+            view.displayError("Performance can't be cancelled as it has already happened.");
             return;
         }
 
         // Get organiser message for affected students
         String organiserMessage = "";
         while (organiserMessage.isBlank()) {
-            organiserMessage = view.getInput(
-                    "Provide a cancellation message "
-                            + "for affected students: ");
+            organiserMessage = view.getInput("Provide a cancellation message for affected students: ");
             if (organiserMessage.isBlank()) {
-                view.displayError(
-                        "Please provide a non-empty "
-                                + "message for the students.");
+                view.displayError("Please provide a non-empty message for the students.");
             }
         }
 
@@ -678,50 +472,36 @@ public class EventPerformanceController extends Controller {
                 double transactionAmount = booking.getTransactionAmount();
 
                 // Process refund through payment system
-                boolean refundSuccess = bookingController.getPaymentSystem()
-                        .processRefund(
-                                numTickets, eventTitle,
-                                studentEmail, studentPhone,
-                                epEmail, transactionAmount,
-                                organiserMessage);
+                boolean refundSuccess = paymentSystem.processRefund(numTickets, eventTitle,
+                        studentEmail, studentPhone, epEmail, transactionAmount, organiserMessage);
 
                 if (!refundSuccess) {
-                    view.displayError(
-                            "There was an issue with a "
-                                    + "refund. The performance "
-                                    + "cannot be cancelled.");
+                    view.displayError("There was an issue with a refund. The performance cannot be cancelled.");
                     return;
                 }
 
-                // Mark booking as cancelled by provider
                 booking.cancelByProvider();
             }
         }
-
-        // Cancel the performance
         performance.cancel();
-        // Set status to CANCELLED
-        performance.setStatus(
-                PerformanceStatus.CANCELLED);
-
+        performance.setStatus(PerformanceStatus.CANCELLED);
         view.displaySuccess("Cancellation Successful!");
     }
 
-    /**
-     * Returns the shared list of all performances.
-     *
-     * @return the performance list
-     */
-    public List<Performance> getPerformances() {
-        return performances;
-    }
-
-    /**
-     * Returns the list of all events.
-     *
-     * @return the event list
-     */
-    public List<Event> getEvents() {
-        return events;
-    }
 }
+
+/**
+ * The cancel performance sequence diagram prescribes that booking details for
+ * refunds are returned as a concatenated string via
+ * getBookingDetailsForRefund(),
+ * which the controller then parses. We deviated from this by accessing Booking
+ * and
+ * Student objects directly through performance.getActiveBookings(). This avoids
+ * string parsing fragility and maintains proper encapsulation — the controller
+ * works with typed domain objects rather than raw strings, which is more
+ * reliable and consistent with OO design principles (Information Expert, high
+ * cohesion). To update the diagram, we would replace the
+ * getBookingDetailsForRefund()
+ * string return with direct navigation from Performance to its Booking objects,
+ * each providing typed accessors for student details and transaction amounts.
+ */

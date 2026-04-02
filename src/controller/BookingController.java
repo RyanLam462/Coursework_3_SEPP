@@ -1,6 +1,5 @@
 package controller;
 
-import external.MockPaymentSystem;
 import external.PaymentSystem;
 import model.Booking;
 import model.BookingStatus;
@@ -38,17 +37,16 @@ public class BookingController extends Controller {
     /**
      * Constructs a new {@code BookingController}.
      *
-     * @param view         the view for user interaction
-     * @param performances the shared performance list
+     * @param view          the view for user interaction
+     * @param performances  the shared performance list
+     * @param paymentSystem the shared payment system
      */
-    public BookingController(View view, List<Performance> performances) {
+    public BookingController(View view, List<Performance> performances, PaymentSystem paymentSystem) {
         super(view);
-        assert performances != null : "Performances list must not be null";
         this.performances = performances;
-        this.paymentSystem = new MockPaymentSystem();
+        this.paymentSystem = paymentSystem;
         this.bookings = new ArrayList<>();
         this.nextBookingNumber = 1;
-
     }
 
     private Performance getPerformanceByID(long performanceID) {
@@ -88,20 +86,6 @@ public class BookingController extends Controller {
             }
         }
         return null;
-    }
-
-    /**
-     * Returns the payment system used by this controller.
-     *
-     * <p>
-     * Exposed so that the {@link EventPerformanceController} can use it for refunds
-     * during performance cancellation.
-     * </p>
-     *
-     * @return the {@link PaymentSystem}
-     */
-    public PaymentSystem getPaymentSystem() {
-        return paymentSystem;
     }
 
     /**
