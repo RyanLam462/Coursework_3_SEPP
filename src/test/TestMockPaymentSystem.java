@@ -1,3 +1,5 @@
+package test;
+
 import external.MockPaymentSystem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
