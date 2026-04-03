@@ -12,26 +12,11 @@ import external.PaymentSystem;
 import external.MockPaymentSystem;
 
 /**
- * Controller responsible for the main application menu loop.
- *
- * <p>
  * The {@code MenuController} presents role-specific menus
  * to the user (guest, student, entertainment provider, or
  * admin staff) and routes the chosen option to the
  * appropriate specialised controller. It is the central
  * orchestrator of the application flow.
- * </p>
- *
- * <p>
- * <strong>Class diagram note:</strong> the
- * {@code MenuController} is associated 1-1 with
- * {@link UserController},
- * {@link EventPerformanceController}, and
- * {@link BookingController}, and 1-* with
- * {@link Performance} (it initialises the shared
- * performance collection passed to the other
- * controllers).
- * </p>
  */
 public class MenuController extends Controller {
 
@@ -131,8 +116,7 @@ public class MenuController extends Controller {
      * Guests can log in, register as an EP, or exit.
      * </p>
      *
-     * @return {@code true} to continue the loop,
-     *         {@code false} to exit
+     * @return {@code true} to continue the loop, {@code false} to exit
      */
     private boolean handleGuestMainMenu() {
         view.displayInfo("=== Guest Menu ===");
@@ -259,8 +243,7 @@ public class MenuController extends Controller {
      * or log out.
      * </p>
      *
-     * @return {@code true} to continue the loop,
-     *         {@code false} to exit
+     * @return {@code true} to continue the loop, {@code false} to exit
      */
     private boolean handleAdminStaffMainMenu() {
         view.displayInfo("=== Admin Staff Menu ===");

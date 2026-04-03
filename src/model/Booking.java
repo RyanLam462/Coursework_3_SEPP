@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
  * </p>
  */
 public class Booking {
-
     private final long bookingNumber;
     private final Student student;
     private final Performance performance;
@@ -111,11 +110,9 @@ public class Booking {
     }
 
     /**
-     * Returns a string summarising the student's details
-     * for this booking.
+     * Returns a string summarising the student's details for this booking.
      *
-     * @return a formatted string with the student's name,
-     *         email, and phone number
+     * @return a formatted string with the student's name, email, and phone number
      */
     public String getStudentDetails() {
         return student.getName() + " (" + student.getEmail() + ", phone: " + student.getPhoneNumber() + ")";

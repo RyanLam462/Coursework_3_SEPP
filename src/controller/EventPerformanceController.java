@@ -31,17 +31,6 @@ import external.PaymentSystem;
  * </p>
  */
 public class EventPerformanceController extends Controller {
-
-    /**
-     * getEventByID() and getEventByTitle() were removed from
-     * EventPerformanceController as no implemented use case requires looking up
-     * events by ID or title on the controller. Events are accessed through their
-     * Performance objects (via getEvent()) or through the
-     * EntertainmentProvider's event list. If a future use case required direct
-     * event lookup (e.g. an admin searching events), these methods would be
-     * re-added.
-     */
-
     private long nextEventID;
     private long nextPerformanceID;
     private final List<Performance> performances;
@@ -112,22 +101,11 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
-     * Handles the create event use case.
-     *
-     * <p>
      * Only an {@link EntertainmentProvider} may create
      * events. The EP is prompted for the event title,
      * type, whether it is ticketed, and then for one or
      * more performance details (venue, dates, ticket
      * price, total tickets).
-     * </p>
-     *
-     * <p>
-     * <strong>Validation:</strong> checks that the
-     * current user is an EP, that all inputs are valid,
-     * that end dates are after start dates, and that
-     * numeric values are non-negative.
-     * </p>
      */
     public Event createEvent() {
         if (!checkCurrentUserIsEntertainmentProvider()) {
@@ -143,7 +121,6 @@ public class EventPerformanceController extends Controller {
             return null;
         }
 
-        // Check duplicate title for this EP
         for (Event existing : ep.getEvents()) {
             if (existing.getEventTitle().equalsIgnoreCase(title)) {
                 view.displayError("You already have an event with this title.");
@@ -340,12 +317,8 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
-     * Handles the search for performances use case.
-     *
-     * <p>
      * Displays all active performances in the system.
      * Any user (guest, student, EP, admin) can search.
-     * </p>
      */
     public void searchForPerformances() {
         if (performances.isEmpty()) {
@@ -370,13 +343,9 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
-     * Handles the view performance use case.
-     *
-     * <p>
      * Prompts the user for a performance ID and
      * displays its full details. Any user can view
      * a performance.
-     * </p>
      */
     public void viewPerformance() {
         String idInput = view.getInput("Enter performance ID to view: ");
@@ -415,26 +384,14 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
-     * Handles the cancel performance use case.
-     *
-     * <p>
      * Only the {@link EntertainmentProvider} who
      * created the performance may cancel it. The EP is
      * prompted for the performance ID and a cancellation
      * message for affected students. All active bookings
      * are refunded through the payment system and marked
      * as cancelled by provider.
-     * </p>
-     *
-     * <p>
-     * <strong>Validation:</strong> checks that the
-     * performance exists, belongs to the current EP, and
-     * has not already happened.
-     * </p>
-     *
      */
     public void cancelPerformance() {
-        // Guard: must be an EP
         if (!checkCurrentUserIsEntertainmentProvider()) {
             view.displayError("Only entertainment providers can cancel performances.");
             return;
@@ -447,7 +404,8 @@ public class EventPerformanceController extends Controller {
 
         while (performance == null || !sameEP || !hasNotHappenedYet) {
             String idInput = view.getInput("Enter ID of performance to cancel (or 'exit' to cancel): ");
-            if ("exit".equalsIgnoreCase(idInput)) return;
+            if ("exit".equalsIgnoreCase(idInput))
+                return;
             try {
                 long performanceID = Long.parseLong(idInput);
                 performance = getPerformanceByID(performanceID);
@@ -474,8 +432,10 @@ public class EventPerformanceController extends Controller {
         // We also use isBlank() to check for empty strings instead of using null
         String organiserMessage = "";
         while (organiserMessage.isBlank()) {
-            organiserMessage = view.getInput("Provide a cancellation message for affected students (or 'exit' to cancel): ");
-            if ("exit".equalsIgnoreCase(organiserMessage)) return;
+            organiserMessage = view
+                    .getInput("Provide a cancellation message for affected students (or 'exit' to cancel): ");
+            if ("exit".equalsIgnoreCase(organiserMessage))
+                return;
             if (organiserMessage.isBlank()) {
                 view.displayError("Please provide a non-empty message for the students.");
             }
@@ -515,19 +475,3 @@ public class EventPerformanceController extends Controller {
     }
 
 }
-
-/**
- * The cancel performance sequence diagram prescribes that booking details for
- * refunds are returned as a concatenated string via
- * getBookingDetailsForRefund(),
- * which the controller then parses. We deviated from this by accessing Booking
- * and
- * Student objects directly through performance.getActiveBookings(). This avoids
- * string parsing fragility and maintains proper encapsulation — the controller
- * works with typed domain objects rather than raw strings, which is more
- * reliable and consistent with OO design principles (Information Expert, high
- * cohesion). To update the diagram, we would replace the
- * getBookingDetailsForRefund()
- * string return with direct navigation from Performance to its Booking objects,
- * each providing typed accessors for student details and transaction amounts.
- */

@@ -95,20 +95,10 @@ public class UserController extends Controller {
         }
 
         /**
-         * Handles the login use case.
-         *
-         * <p>
          * Prompts the user for their email and password,
          * then searches the registered users for a match.
          * If a match is found, sets the current user
          * accordingly.
-         * </p>
-         *
-         * <p>
-         * <strong>Validation:</strong> rejects blank email
-         * or password, and reports an error if no matching
-         * account is found or if the password is incorrect.
-         * </p>
          */
         public void login() {
                 // Guard: must not already be logged in
@@ -153,40 +143,27 @@ public class UserController extends Controller {
         }
 
         /**
-         * Handles the logout use case.
-         *
-         * <p>
          * Clears the currently logged-in user, returning
          * the system to guest mode.
-         * </p>
          */
         public void logout() {
                 if (checkCurrentUserIsGuest()) {
                         view.displayError("No user is currently logged in.");
                         return;
                 }
+
                 String email = currentUser.getEmail();
                 currentUser = null;
                 view.displaySuccess("Logged out successfully. Goodbye, " + email + "!");
         }
 
         /**
-         * Handles the register entertainment provider use case.
-         *
-         * <p>
          * Prompts the guest user for their organisation
          * name, business registration number, email, and
          * password. The business number is verified through
          * the {@link VerificationService}. If verification
          * succeeds and no duplicate account exists, the new
          * EP is registered and logged in.
-         * </p>
-         *
-         * <p>
-         * <strong>Validation:</strong> checks for blank
-         * inputs, duplicate email/org/business number
-         * combinations, and verification service results.
-         * </p>
          */
         public void registerEntertainmentProvider() {
                 // Guard: must be a guest
@@ -286,12 +263,8 @@ public class UserController extends Controller {
         }
 
         /**
-         * Handles the edit preferences use case for students.
-         *
-         * <p>
          * Prompts the student to enter their preferred
          * event types as a comma-separated list.
-         * </p>
          */
         public void editPreferences() {
                 if (!checkCurrentUserIsStudent()) {
@@ -331,8 +304,8 @@ public class UserController extends Controller {
          * </p>
          *
          * @param eventNumber the event ID to search for
-         * @return the owning {@link EntertainmentProvider},
-         *         or {@code null} if not found
+         * @return the owning {@link EntertainmentProvider}, or {@code null} if not
+         *         found
          */
         public EntertainmentProvider getEntertainmentProviderOwningEvent(long eventNumber) {
                 for (User user : users) {

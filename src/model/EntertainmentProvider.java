@@ -16,7 +16,6 @@ import java.util.List;
  * </p>
  */
 public class EntertainmentProvider extends User {
-
     private String orgName;
     private String businessRegistrationNumber;
     private String name;

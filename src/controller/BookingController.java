@@ -23,13 +23,6 @@ import java.util.List;
  */
 
 public class BookingController extends Controller {
-    /**
-     * findBookingsByEventID() was removed from BookingController
-     * as it is not used by any of the implemented use cases.
-     * The cancel performance use case retrieves bookings directly
-     * from the Performance object via getActiveBookings().
-     */
-
     private long nextBookingNumber;
     private final List<Booking> bookings;
     private final List<Performance> performances;
@@ -90,22 +83,11 @@ public class BookingController extends Controller {
     }
 
     /**
-     * Handles the book performance use case.
-     *
-     * <p>
      * Only a {@link Student} may book a performance.
      * The student is prompted for a performance ID and
      * the number of tickets. The system validates
      * availability, processes payment, creates a booking,
      * and displays a booking record.
-     * </p>
-     *
-     * <p>
-     * <strong>Validation:</strong> checks that the
-     * performance exists, is active, is ticketed, has
-     * enough tickets, the student is logged in, and
-     * payment succeeds.
-     * </p>
      */
     public void bookPerformance() {
         if (!checkCurrentUserIsStudent()) {
@@ -120,10 +102,12 @@ public class BookingController extends Controller {
 
         while (performance == null || (!possible && isTicketed)) {
             String idInput = view.getInput("Enter performance ID to book (or 'exit' to cancel): ");
-            if ("exit".equalsIgnoreCase(idInput)) return;
-            
+            if ("exit".equalsIgnoreCase(idInput))
+                return;
+
             String ticketsInput = view.getInput("Enter number of tickets (or 'exit' to cancel): ");
-            if ("exit".equalsIgnoreCase(ticketsInput)) return;
+            if ("exit".equalsIgnoreCase(ticketsInput))
+                return;
 
             try {
                 long performanceID = Long.parseLong(idInput);
@@ -154,8 +138,8 @@ public class BookingController extends Controller {
             }
         }
 
-        // Guard: if loop exited because the event was non-ticketed, do not proceed with
-        // booking
+        // Guard: if loop exited because the event was non-ticketed,
+        // do not proceed with booking
         if (!possible) {
             return;
         }
@@ -192,26 +176,9 @@ public class BookingController extends Controller {
     }
 
     /**
-     * Our book performace controller very slightly deviates fromt the sequence
-     * diagram. For example, we dont use getFinalTicketPrice() to get the final
-     * ticket price. Instead, we calculate it ourselves. This is because we need to
-     * know the transaction amount to create the booking.
-     */
-
-    /**
-     * Handles the cancel booking use case.
-     *
-     * <p>
      * Only a {@link Student} may cancel their own booking. The student is prompted
      * for the booking number. If the associated performance has not yet happened, a
      * refund is processed and the booking is marked as cancelled.
-     * </p>
-     *
-     * <p>
-     * <strong>Validation:</strong> checks that the
-     * booking exists, belongs to the current student,
-     * is active, and the performance hasn't happened.
-     * </p>
      */
     public void cancelBooking() {
         if (!checkCurrentUserIsStudent()) {
@@ -223,6 +190,7 @@ public class BookingController extends Controller {
 
         String numInput = view.getInput("Enter booking number to cancel: ");
         long bookingNumber;
+
         try {
             bookingNumber = Long.parseLong(numInput);
         } catch (NumberFormatException e) {
@@ -236,7 +204,6 @@ public class BookingController extends Controller {
             return;
         }
 
-        // Check the booking belongs to this student
         if (!booking.getStudentEmail().equalsIgnoreCase(student.getEmail())) {
             view.displayError("This booking does not belong to you.");
             return;
@@ -270,7 +237,6 @@ public class BookingController extends Controller {
         }
 
         booking.cancelByStudent();
-        // Restore the ticket count
         performance.setNumTicketsSold(performance.getNumTicketsSold() - numTickets);
         view.displaySuccess("Booking cancelled successfully. Refund has been processed.");
     }

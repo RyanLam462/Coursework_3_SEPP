@@ -35,7 +35,7 @@ public class Performance {
     private double ticketPrice;
     private PerformanceStatus status;
 
-    // Bookings associated with this performance. */
+    // Bookings associated with this performance.
     private final List<Booking> bookings;
 
     /**
@@ -278,8 +278,7 @@ public class Performance {
     }
 
     /**
-     * Returns an unmodifiable view of the bookings for
-     * this performance.
+     * Returns an unmodifiable view of the bookings for this performance.
      *
      * @return an unmodifiable list of bookings
      */

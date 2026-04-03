@@ -11,7 +11,6 @@ package model;
  * </p>
  */
 public class StudentPreferences {
-
     public boolean preferMusicEvents;
     public boolean preferTheaterEvents;
     public boolean preferDanceEvents;
@@ -42,16 +41,11 @@ public class StudentPreferences {
      * so only the listed types will be set to {@code true}.
      * </p>
      *
-     * <p>
-     * An empty or blank string clears all preferences.
-     * </p>
-     *
      * @param studentRawStringPreferences the comma-separated preference string
      * @return {@code true} if all tokens were recognised, {@code false} if any
      *         token was invalid
      */
     public boolean updatePreferences(String studentRawStringPreferences) {
-
         if (studentRawStringPreferences == null || studentRawStringPreferences.isBlank()) {
             return true; // clearing all is valid
         }
