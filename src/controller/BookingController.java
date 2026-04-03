@@ -183,6 +183,13 @@ public class BookingController extends Controller {
     }
 
     /**
+     * Our book performace controller very slightly deviates fromt the sequence
+     * diagram. For example, we dont use getFinalTicketPrice() to get the final
+     * ticket price. Instead, we calculate it ourselves. This is because we need to
+     * know the transaction amount to create the booking.
+     */
+
+    /**
      * Handles the cancel booking use case.
      *
      * <p>

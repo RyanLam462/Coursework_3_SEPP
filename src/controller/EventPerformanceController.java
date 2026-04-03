@@ -421,32 +421,35 @@ public class EventPerformanceController extends Controller {
 
         EntertainmentProvider ep = (EntertainmentProvider) currentUser;
         Performance performance = null;
+        boolean sameEP = false;
+        boolean hasNotHappenedYet = false;
 
-        while (performance == null) {
+        while (performance == null || !sameEP || !hasNotHappenedYet) {
             String idInput = view.getInput("Enter ID of performance to cancel: ");
             try {
                 long performanceID = Long.parseLong(idInput);
                 performance = getPerformanceByID(performanceID);
                 if (performance == null) {
                     view.displayError("Performance with given number does not exist.");
+                } else {
+                    sameEP = performance.checkCreatedByEP(ep.getEmail());
+                    if (!sameEP) {
+                        view.displayError("The performance with given number does not belong to you.");
+                    } else {
+                        hasNotHappenedYet = performance.checkHasNotHappenedYet();
+                        if (!hasNotHappenedYet) {
+                            view.displayError("Performance can't be cancelled as it has already happened.");
+                        }
+                    }
                 }
             } catch (NumberFormatException e) {
                 view.displayError("Invalid performance ID.");
+                performance = null; // reset to ensure clean loop check
             }
         }
 
-        // Check EP owns this performance
-        if (!performance.checkCreatedByEP(ep.getEmail())) {
-            view.displayError("The performance with given number does not belong to you.");
-            return;
-        }
-
-        if (!performance.checkHasNotHappenedYet()) {
-            view.displayError("Performance can't be cancelled as it has already happened.");
-            return;
-        }
-
         // Get organiser message for affected students
+        // We also use isBlank() to check for empty strings instead of using null
         String organiserMessage = "";
         while (organiserMessage.isBlank()) {
             organiserMessage = view.getInput("Provide a cancellation message for affected students: ");

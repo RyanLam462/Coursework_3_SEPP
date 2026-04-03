@@ -220,7 +220,7 @@ public class UserController extends Controller {
                 }
 
                 // Check for duplicate EP account
-                if (EPAccountAlreadyExists(email, orgName, businessNumber)) {
+                if (epAccountAlreadyExists(email, orgName, businessNumber)) {
                         view.displayError(
                                         "An entertainment provider with the same email, organisation name, or business number already exists.");
                         return;
@@ -263,7 +263,7 @@ public class UserController extends Controller {
          * @param businessNumber the business number to check
          * @return {@code true} if a duplicate account exists
          */
-        private boolean EPAccountAlreadyExists(String email, String orgName, String businessNumber) {
+        private boolean epAccountAlreadyExists(String email, String orgName, String businessNumber) {
                 for (User user : users) {
                         if (user instanceof EntertainmentProvider ep) {
                                 if (ep.getEmail().equalsIgnoreCase(email)

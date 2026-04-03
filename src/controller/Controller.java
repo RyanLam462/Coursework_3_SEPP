@@ -24,6 +24,17 @@ import java.util.Collection;
  * the {@link MenuController}.
  * </p>
  */
+
+/**
+ * The class diagram shows a <<use>> dependency from the abstract
+ * Controller to PaymentSystem and VerificationService. We deviated by passing
+ * these dependencies only to the controllers that actually use them
+ * (PaymentSystem to BookingController and EventPerformanceController,
+ * VerificationService to UserController). This avoids giving controllers
+ * access to systems they do not need, following the Interface Segregation
+ * Principle. To update the diagram, we would move the <<use>> dependencies
+ * from Controller to the specific sub-controllers that use each system.
+ */
 public abstract class Controller {
 
     // The current logged-in user, or null if no user is logged in (guest mode).
