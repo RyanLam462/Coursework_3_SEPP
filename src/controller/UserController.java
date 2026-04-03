@@ -83,6 +83,11 @@ public class UserController extends Controller {
                 // Pre-registered admin staff
                 users.add(new AdminStaff("admin1@ed.ac.uk", "adminPass1", "Admin Alice"));
                 users.add(new AdminStaff("admin2@ed.ac.uk", "adminPass2", "Admin Bob"));
+
+                // Pre-registered EP
+                EntertainmentProvider ep1 = new EntertainmentProvider("ep1@ed.ac.uk", "password123", "Mock Org",
+                                "1234567890", "Mock Person", "Mock Description");
+                users.add(ep1);
         }
 
         public List<User> getUsers() {
@@ -297,7 +302,7 @@ public class UserController extends Controller {
                 Student student = (Student) currentUser;
                 StudentPreferences prefs = student.getPreferences();
 
-                view.displayInfo("Current preferences: " + prefs);
+                view.displayInfo("Current preferences: " + prefs.toString());
                 view.displayInfo("Enter preferred event types as a comma-separated list.");
                 view.displayInfo("Valid types: Music, Theatre, Dance, Movie, Sports");
                 view.displayInfo("Leave blank to clear all preferences.");
@@ -309,9 +314,9 @@ public class UserController extends Controller {
                 if (!success) {
                         view.displayError(
                                         "Some preference tokens were not recognised. Valid tokens: Music, Theatre, Dance, Movie, Sports.");
+                } else {
+                        view.displaySuccess("Preferences updated successfully.");
                 }
-
-                view.displaySuccess("Preferences updated successfully.");
                 view.displayInfo("Current preferences: " + prefs);
         }
 

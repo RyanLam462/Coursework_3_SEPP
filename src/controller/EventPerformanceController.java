@@ -71,6 +71,27 @@ public class EventPerformanceController extends Controller {
         this.nextPerformanceID = 1;
     }
 
+    // Load preregistered data for testing
+    public void loadPreregisteredData(EntertainmentProvider ep) {
+        Event e1 = new Event(nextEventID++, "Comedy Night", EventType.Theatre, true, ep);
+        addEvent(e1);
+        ep.addEvent(e1);
+
+        Performance p1 = e1.createPerformance(nextPerformanceID++, LocalDateTime.now().plusDays(2),
+                LocalDateTime.now().plusDays(2).plusHours(2), java.util.List.of("Comedian A"), "Main Hall", 100, false,
+                false, 50, 10.0);
+        addPerformance(p1);
+
+        Event e2 = new Event(nextEventID++, "Music Fest", EventType.Music, true, ep);
+        addEvent(e2);
+        ep.addEvent(e2);
+
+        Performance p2 = e2.createPerformance(nextPerformanceID++, LocalDateTime.now().plusDays(5),
+                LocalDateTime.now().plusDays(5).plusHours(4), java.util.List.of("Band X", "DJ Y"), "Outdoor Arena", 500,
+                true, true, 200, 25.0);
+        addPerformance(p2);
+    }
+
     private void addEvent(Event e) {
         assert e != null : "Event must not be null";
         events.add(e);

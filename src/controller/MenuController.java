@@ -1,5 +1,6 @@
 package controller;
 
+import model.EntertainmentProvider;
 import model.Performance;
 import model.User;
 import view.View;
@@ -55,6 +56,18 @@ public class MenuController extends Controller {
         this.bookingController = new BookingController(view, sharedPerformances, sharedPaymentSystem);
 
         userController.addPreregisteredUsers();
+
+        // Load predefined events and performances for testing
+        EntertainmentProvider mockEP = null;
+        for (User u : userController.getUsers()) {
+            if (u instanceof EntertainmentProvider) {
+                mockEP = (EntertainmentProvider) u;
+                break;
+            }
+        }
+        if (mockEP != null) {
+            eventPerformanceController.loadPreregisteredData(mockEP);
+        }
     }
 
     /**
@@ -122,7 +135,7 @@ public class MenuController extends Controller {
      *         {@code false} to exit
      */
     private boolean handleGuestMainMenu() {
-        view.displayInfo("\n=== Guest Menu ===");
+        view.displayInfo("=== Guest Menu ===");
         List<String> options = Arrays.asList(
                 GuestMenuOptions.LOGIN.name(),
                 GuestMenuOptions.REGISTER_EP.name(),
@@ -159,7 +172,7 @@ public class MenuController extends Controller {
      * @return {@code true} to continue the loop, {@code false} to exit
      */
     private boolean handleStudentMainMenu() {
-        view.displayInfo("\n=== Student Menu ===");
+        view.displayInfo("=== Student Menu ===");
         List<String> options = Arrays.asList(
                 StudentMenuOptions.LOGOUT.name(),
                 StudentMenuOptions.SEARCH_FOR_PERFORMANCES.name(),
@@ -206,7 +219,7 @@ public class MenuController extends Controller {
      * @return {@code true} to continue the loop, {@code false} to exit
      */
     private boolean handleEntertainmentProviderMainMenu() {
-        view.displayInfo("\n=== Entertainment Provider Menu ===");
+        view.displayInfo("=== Entertainment Provider Menu ===");
         List<String> options = Arrays.asList(
                 EPMenuOptions.LOGOUT.name(),
                 EPMenuOptions.SEARCH_FOR_PERFORMANCES.name(),
@@ -250,7 +263,7 @@ public class MenuController extends Controller {
      *         {@code false} to exit
      */
     private boolean handleAdminStaffMainMenu() {
-        view.displayInfo("\n=== Admin Staff Menu ===");
+        view.displayInfo("=== Admin Staff Menu ===");
         List<String> options = Arrays.asList(
                 AdminMenuOptions.LOGOUT.name(),
                 AdminMenuOptions.SEARCH_FOR_PERFORMANCES.name(),
