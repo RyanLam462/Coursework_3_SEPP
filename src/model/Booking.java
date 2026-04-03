@@ -20,19 +20,8 @@ public class Booking {
     private final Student student;
     private final Performance performance;
     private final int numTickets;
-
-    /**
-     * The total transaction amount in GBP at the time
-     * of booking.
-     */
     private final double transactionAmount;
-
-    /**
-     * The date and time the booking was created.
-     */
     private final LocalDateTime bookingDateTime;
-
-    /** The current status of this booking. */
     private BookingStatus status;
 
     /**

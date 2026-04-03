@@ -119,8 +119,11 @@ public class BookingController extends Controller {
         int numTickets = 0;
 
         while (performance == null || (!possible && isTicketed)) {
-            String idInput = view.getInput("Enter performance ID to book: ");
-            String ticketsInput = view.getInput("Enter number of tickets: ");
+            String idInput = view.getInput("Enter performance ID to book (or 'exit' to cancel): ");
+            if ("exit".equalsIgnoreCase(idInput)) return;
+            
+            String ticketsInput = view.getInput("Enter number of tickets (or 'exit' to cancel): ");
+            if ("exit".equalsIgnoreCase(ticketsInput)) return;
 
             try {
                 long performanceID = Long.parseLong(idInput);

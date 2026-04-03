@@ -446,7 +446,8 @@ public class EventPerformanceController extends Controller {
         boolean hasNotHappenedYet = false;
 
         while (performance == null || !sameEP || !hasNotHappenedYet) {
-            String idInput = view.getInput("Enter ID of performance to cancel: ");
+            String idInput = view.getInput("Enter ID of performance to cancel (or 'exit' to cancel): ");
+            if ("exit".equalsIgnoreCase(idInput)) return;
             try {
                 long performanceID = Long.parseLong(idInput);
                 performance = getPerformanceByID(performanceID);
@@ -473,7 +474,8 @@ public class EventPerformanceController extends Controller {
         // We also use isBlank() to check for empty strings instead of using null
         String organiserMessage = "";
         while (organiserMessage.isBlank()) {
-            organiserMessage = view.getInput("Provide a cancellation message for affected students: ");
+            organiserMessage = view.getInput("Provide a cancellation message for affected students (or 'exit' to cancel): ");
+            if ("exit".equalsIgnoreCase(organiserMessage)) return;
             if (organiserMessage.isBlank()) {
                 view.displayError("Please provide a non-empty message for the students.");
             }
