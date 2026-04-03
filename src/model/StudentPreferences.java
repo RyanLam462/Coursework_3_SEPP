@@ -51,12 +51,6 @@ public class StudentPreferences {
      *         token was invalid
      */
     public boolean updatePreferences(String studentRawStringPreferences) {
-        // Reset all preferences
-        preferMusicEvents = false;
-        preferTheaterEvents = false;
-        preferDanceEvents = false;
-        preferMovieEvents = false;
-        preferSportsEvents = false;
 
         if (studentRawStringPreferences == null || studentRawStringPreferences.isBlank()) {
             return true; // clearing all is valid

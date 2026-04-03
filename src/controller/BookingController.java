@@ -7,6 +7,7 @@ import model.Event;
 import model.Performance;
 import model.Student;
 import view.View;
+import model.PerformanceStatus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -141,6 +142,11 @@ public class BookingController extends Controller {
 
             } catch (NumberFormatException e) {
                 view.displayError("Invalid input format.");
+                performance = null;
+            }
+
+            if (performance != null && performance.getStatus() == PerformanceStatus.CANCELLED) {
+                view.displayError("Performance is not active.");
                 performance = null;
             }
         }
