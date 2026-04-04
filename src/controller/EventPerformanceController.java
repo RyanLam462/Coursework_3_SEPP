@@ -372,8 +372,8 @@ public class EventPerformanceController extends Controller {
                 "ID: " + p.getID()
                 + " | Event: " + event.getEventTitle()
                 + " | EP: " + event.getOrganiserName()
-                + " | Time: " + p.getStartDateTime()
-                + " - " + p.getEndDateTime()
+                + " | Time: " + p.getStartDateTime().format(Performance.DATE_TIME_FORMATTER)
+                + " - " + p.getEndDateTime().format(Performance.DATE_TIME_FORMATTER)
                 + " | Venue: " + p.getVenueAddress());
         }
         view.displayInfo("Total: " + results.size() + " performance(s)");
@@ -424,8 +424,8 @@ public class EventPerformanceController extends Controller {
         view.displayInfo("Event: " + event.getEventTitle() + " (" + event.getType() + ")");
         view.displayInfo("Organiser: " + event.getOrganiser().getOrgName());
         view.displayInfo("Venue: " + p.getVenueAddress());
-        view.displayInfo("Start: " + p.getStartDateTime());
-        view.displayInfo("End: " + p.getEndDateTime());
+        view.displayInfo("Start: " + p.getStartDateTime().format(Performance.DATE_TIME_FORMATTER));
+        view.displayInfo("End: " + p.getEndDateTime().format(Performance.DATE_TIME_FORMATTER));
         view.displayInfo("Ticketed: " + event.getIsTicketed());
         view.displayInfo("Performers: " + p.getPerformerNames());
         view.displayInfo("Capacity: " + p.getVenueCapacity());

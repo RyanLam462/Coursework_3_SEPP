@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +20,9 @@ import java.util.List;
  */
 public class Performance {
     private final long performanceID;
+
+    // Standard formatter for displaying dates without seconds.
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     // The event to which this performance belongs.
     private final Event event;
@@ -277,6 +281,10 @@ public class Performance {
                         .append(b.getNumTickets())
                         .append(", Amount: £")
                         .append(String.format("%.2f", b.getTransactionAmount()))
+                        .append(", Date: ")
+                        .append(startDateTime.format(DATE_TIME_FORMATTER))
+                        .append(" - ")
+                        .append(endDateTime.format(DATE_TIME_FORMATTER))
                         .append("\n");
             }
         }
@@ -322,8 +330,8 @@ public class Performance {
         return "Performance{id=" + performanceID
                 + ", event='" + event.getEventTitle()
                 + "', venue='" + venueAddress
-                + "', start=" + startDateTime
-                + ", end=" + endDateTime
+                + "', start=" + startDateTime.format(DATE_TIME_FORMATTER)
+                + ", end=" + endDateTime.format(DATE_TIME_FORMATTER)
                 + ", price=" + ticketPrice
                 + ", ticketsSold=" + numTicketsSold
                 + "/" + numTicketsTotal

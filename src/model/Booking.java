@@ -142,13 +142,13 @@ public class Booking {
                 + " (" + event.getType() + ")"
                 + "\nPerformance ID: " + performance.getID()
                 + "\nVenue: " + performance.getVenueAddress()
-                + "\nDate: " + performance.getStartDateTime()
-                + " - " + performance.getEndDateTime()
+                + "\nDate: " + performance.getStartDateTime().format(Performance.DATE_TIME_FORMATTER)
+                + " - " + performance.getEndDateTime().format(Performance.DATE_TIME_FORMATTER)
                 + "\nTickets: " + numTickets
                 + "\nTotal Paid: £"
                 + String.format("%.2f", transactionAmount)
                 + "\nStatus: " + status
-                + "\nBooked at: " + bookingDateTime
+                + "\nBooked at: " + bookingDateTime.format(Performance.DATE_TIME_FORMATTER)
                 + "\n========================";
     }
 
