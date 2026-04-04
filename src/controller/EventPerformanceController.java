@@ -102,6 +102,23 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
+     * Checks whether a given event type matches the student's preferences.
+     *
+     * @param type  the event type to check
+     * @param prefs the student's preferences
+     * @return {@code true} if the type matches a preferred category
+     */
+    private boolean matchesPreferences(EventType type, StudentPreferences prefs) {
+        return switch (type) {
+            case Music -> prefs.preferMusicEvents;
+            case Theatre -> prefs.preferTheaterEvents;
+            case Dance -> prefs.preferDanceEvents;
+            case Movie -> prefs.preferMovieEvents;
+            case Sports -> prefs.preferSportsEvents;
+        };
+    }
+
+    /**
      * Only an {@link EntertainmentProvider} may create
      * events. The EP is prompted for the event title,
      * type, whether it is ticketed, and then for one or
@@ -359,8 +376,10 @@ public class EventPerformanceController extends Controller {
             results.sort((a, b) -> {
                 boolean aMatch = matchesPreferences(a.getEvent().getType(), prefs);
                 boolean bMatch = matchesPreferences(b.getEvent().getType(), prefs);
-                if (aMatch && !bMatch) return -1;
-                if (!aMatch && bMatch) return 1;
+                if (aMatch && !bMatch)
+                    return -1;
+                if (!aMatch && bMatch)
+                    return 1;
                 return 0;
             });
         }
@@ -369,31 +388,14 @@ public class EventPerformanceController extends Controller {
         for (Performance p : results) {
             Event event = p.getEvent();
             view.displayInfo(
-                "ID: " + p.getID()
-                + " | Event: " + event.getEventTitle()
-                + " | EP: " + event.getOrganiserName()
-                + " | Time: " + p.getStartDateTime().format(Performance.DATE_TIME_FORMATTER)
-                + " - " + p.getEndDateTime().format(Performance.DATE_TIME_FORMATTER)
-                + " | Venue: " + p.getVenueAddress());
+                    "ID: " + p.getID()
+                            + " | Event: " + event.getEventTitle()
+                            + " | EP: " + event.getOrganiserName()
+                            + " | Time: " + p.getStartDateTime().format(Performance.DATE_TIME_FORMATTER)
+                            + " - " + p.getEndDateTime().format(Performance.DATE_TIME_FORMATTER)
+                            + " | Venue: " + p.getVenueAddress());
         }
         view.displayInfo("Total: " + results.size() + " performance(s)");
-    }
-
-    /**
-     * Checks whether a given event type matches the student's preferences.
-     *
-     * @param type  the event type to check
-     * @param prefs the student's preferences
-     * @return {@code true} if the type matches a preferred category
-     */
-    private boolean matchesPreferences(EventType type, StudentPreferences prefs) {
-        return switch (type) {
-            case Music -> prefs.preferMusicEvents;
-            case Theatre -> prefs.preferTheaterEvents;
-            case Dance -> prefs.preferDanceEvents;
-            case Movie -> prefs.preferMovieEvents;
-            case Sports -> prefs.preferSportsEvents;
-        };
     }
 
     /**
