@@ -138,8 +138,7 @@ public class Event {
      * Returns information about performances that start
      * on the given date.
      *
-     * @param searchDateTime the date/time to match (performances starting on the
-     *                       same date)
+     * @param searchDateTime the date/time to match (performances starting on the same date)
      * @return a collection of performance info strings
      */
     public Collection<String> getInfoOfPerformancesOnDate(LocalDateTime searchDateTime) {
