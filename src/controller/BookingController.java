@@ -215,8 +215,9 @@ public class BookingController extends Controller {
         }
 
         Performance performance = booking.getPerformance();
-        if (!performance.checkHasNotHappenedYet()) {
-            view.displayError("The performance has already happened. The booking cannot be cancelled.");
+        if (!performance.checkIsAtLeast24HoursAway()) {
+            view.displayError("The performance is less than 24 hours away. The booking cannot "
+                + "be cancelled.");
             return;
         }
 

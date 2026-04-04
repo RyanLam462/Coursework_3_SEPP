@@ -8,7 +8,8 @@ import model.Performance;
 import model.PerformanceStatus;
 import model.Student;
 import view.View;
-
+import model.StudentPreferences;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -317,29 +318,82 @@ public class EventPerformanceController extends Controller {
     }
 
     /**
-     * Displays all active performances in the system.
-     * Any user (guest, student, EP, admin) can search.
+     * Handles the search for performances use case.
+     *
+     * <p>
+     * Prompts the user for a date, then displays all
+     * active performances on that date. If the user is
+     * a student with preferences set, matching
+     * performances are shown first (R7/R8a).
+     * </p>
      */
     public void searchForPerformances() {
-        if (performances.isEmpty()) {
-            view.displayInfo("No performances found in the system.");
+        String dateInput = view.getInput("Enter date to search (yyyy-MM-dd): ");
+        LocalDateTime searchDate;
+        try {
+            searchDate = LocalDate.parse(dateInput).atStartOfDay();
+        } catch (Exception e) {
+            view.displayError("Invalid date format. Use yyyy-MM-dd.");
             return;
         }
 
-        view.displayInfo("=== Available Performances ===");
-        int count = 0;
+        // Collect active performances on that date
+        List<Performance> results = new ArrayList<>();
         for (Performance p : performances) {
-            if (p.getStatus() == PerformanceStatus.ACTIVE) {
-                view.displayInfo(p.toString());
-                count++;
+            if (p.getStatus() == PerformanceStatus.ACTIVE
+                    && p.getStartDateTime().toLocalDate().equals(searchDate.toLocalDate())) {
+                results.add(p);
             }
         }
 
-        if (count == 0) {
-            view.displayInfo("No active performances found.");
-        } else {
-            view.displayInfo("Total active performances: " + count);
+        if (results.isEmpty()) {
+            view.displayInfo("No performances found on " + dateInput + ".");
+            return;
         }
+
+        // preferred event types first
+        if (checkCurrentUserIsStudent()) {
+            Student student = (Student) currentUser;
+            StudentPreferences prefs = student.getPreferences();
+
+            results.sort((a, b) -> {
+                boolean aMatch = matchesPreferences(a.getEvent().getType(), prefs);
+                boolean bMatch = matchesPreferences(b.getEvent().getType(), prefs);
+                if (aMatch && !bMatch) return -1;
+                if (!aMatch && bMatch) return 1;
+                return 0;
+            });
+        }
+
+        view.displayInfo("=== Performances on " + dateInput + " ===");
+        for (Performance p : results) {
+            Event event = p.getEvent();
+            view.displayInfo(
+                "ID: " + p.getID()
+                + " | Event: " + event.getEventTitle()
+                + " | EP: " + event.getOrganiserName()
+                + " | Time: " + p.getStartDateTime()
+                + " - " + p.getEndDateTime()
+                + " | Venue: " + p.getVenueAddress());
+        }
+        view.displayInfo("Total: " + results.size() + " performance(s)");
+    }
+
+    /**
+     * Checks whether a given event type matches the student's preferences.
+     *
+     * @param type  the event type to check
+     * @param prefs the student's preferences
+     * @return {@code true} if the type matches a preferred category
+     */
+    private boolean matchesPreferences(EventType type, StudentPreferences prefs) {
+        return switch (type) {
+            case Music -> prefs.preferMusicEvents;
+            case Theatre -> prefs.preferTheaterEvents;
+            case Dance -> prefs.preferDanceEvents;
+            case Movie -> prefs.preferMovieEvents;
+            case Sports -> prefs.preferSportsEvents;
+        };
     }
 
     /**
@@ -373,6 +427,10 @@ public class EventPerformanceController extends Controller {
         view.displayInfo("Start: " + p.getStartDateTime());
         view.displayInfo("End: " + p.getEndDateTime());
         view.displayInfo("Ticketed: " + event.getIsTicketed());
+        view.displayInfo("Performers: " + p.getPerformerNames());
+        view.displayInfo("Capacity: " + p.getVenueCapacity());
+        view.displayInfo("Outdoors: " + p.getVenueIsOutdoors());
+        view.displayInfo("Smoking: " + p.getVenueAllowsSmoking());
 
         if (event.getIsTicketed()) {
             view.displayInfo("Ticket Price: £" + String.format("%.2f", p.getTicketPrice()));

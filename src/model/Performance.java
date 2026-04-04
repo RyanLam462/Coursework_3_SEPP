@@ -214,8 +214,14 @@ public class Performance {
         return event.getEventTitle();
     }
 
+    // Used by cancelPerformance()
     public boolean checkHasNotHappenedYet() {
         return startDateTime.isAfter(LocalDateTime.now());
+    }
+
+    // Used by cancelBooking() 
+    public boolean checkIsAtLeast24HoursAway() {
+        return startDateTime.isAfter(LocalDateTime.now().plusHours(24));
     }
 
     /**
