@@ -79,8 +79,7 @@ public class TextUserInterface implements View {
      * {@inheritDoc}
      *
      * <p>
-     * Prints each performance info string on its own
-     * line.
+     * Prints each performance info string on its own line.
      * </p>
      */
     @Override
@@ -98,8 +97,7 @@ public class TextUserInterface implements View {
      * {@inheritDoc}
      *
      * <p>
-     * Prints the performance info string as-is to
-     * stdout.
+     * Prints the performance info string as-is to stdout.
      * </p>
      */
     @Override

@@ -15,7 +15,6 @@ import java.util.List;
  * </p>
  */
 public class Student extends User {
-
     private String name;
     private int phoneNumber;
     private StudentPreferences preferences;

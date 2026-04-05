@@ -1,8 +1,7 @@
 package model;
 
 /**
- * Represents an administrative staff member in the
- * university events app.
+ * Represents an administrative staff member in the university events app.
  *
  * <p>
  * Admin staff can search for and view performances, Admin staff accounts are
@@ -10,12 +9,10 @@ package model;
  * </p>
  */
 public class AdminStaff extends User {
-
     private String name;
 
     /**
-     * Constructs a new {@code AdminStaff} with the given
-     * credentials.
+     * Constructs a new {@code AdminStaff} with the given credentials.
      *
      * @param email    the admin's email address
      * @param password the admin's password

@@ -17,7 +17,6 @@ import java.util.List;
  * </p>
  */
 public class Event {
-
     private final long eventID;
     private String title;
     private EventType type;
@@ -139,8 +138,7 @@ public class Event {
      * Returns information about performances that start
      * on the given date.
      *
-     * @param searchDateTime the date/time to match
-     *                       (performances starting on the same date)
+     * @param searchDateTime the date/time to match (performances starting on the same date)
      * @return a collection of performance info strings
      */
     public Collection<String> getInfoOfPerformancesOnDate(LocalDateTime searchDateTime) {
@@ -167,8 +165,7 @@ public class Event {
      *
      * @param startDateTime the start of the range to check
      * @param endDateTime   the end of the range to check
-     * @return {@code true} if an overlapping performance
-     *         exists
+     * @return {@code true} if an overlapping performance exists
      */
     public boolean hasPerformanceAtSameTimes(LocalDateTime startDateTime, LocalDateTime endDateTime) {
         for (Performance p : performances) {

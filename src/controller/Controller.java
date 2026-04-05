@@ -25,28 +25,10 @@ import java.util.Collection;
  * </p>
  */
 
-/**
- * The class diagram shows a <<use>> dependency from the abstract
- * Controller to PaymentSystem and VerificationService. We deviated by passing
- * these dependencies only to the controllers that actually use them
- * (PaymentSystem to BookingController and EventPerformanceController,
- * VerificationService to UserController). This avoids giving controllers
- * access to systems they do not need, following the Interface Segregation
- * Principle. To update the diagram, we would move the <<use>> dependencies
- * from Controller to the specific sub-controllers that use each system.
- */
 public abstract class Controller {
-
-    // The current logged-in user, or null if no user is logged in (guest mode).
     protected User currentUser;
-    // The view used for all user interaction.
     protected View view;
 
-    /**
-     * Constructs a new {@code Controller}.
-     *
-     * @param view the view for user interaction; must not be null
-     */
     protected Controller(View view) {
         assert view != null : "View must not be null";
         this.view = view;
